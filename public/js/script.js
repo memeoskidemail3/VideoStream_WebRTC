@@ -1,8 +1,14 @@
+let meetingId;
 //DOM Elements
 const chatBtn = document.getElementById("chatBtn");
 const mainContainer = document.getElementById("main");
 const input = document.getElementById("input__box");
 const messageList = document.querySelector(".messages");
+const messageContainer = document.querySelector(".main__right__chat");
+const participantsList = document.querySelector(".participants");
+const shareInviteBtn = document.getElementById("shareInviteBtn");
+const sharingLink = document.getElementById("share__invite");
+const promptBox = document.querySelector(".prompt");
 const muteBtn = document.getElementById("mute__btn");
 const videoBtn = document.getElementById("video__btn");
 const leaveBtn = document.getElementById("leaveBtn");
@@ -22,12 +28,13 @@ const socket = io("/");
 let user_name;
 do {
   let name = prompt("Please Enter your name:");
-  user_name = name;
+  user_name = name.trim();
 } while (!user_name);
 //PeerJS
 var peer = new Peer();
 //Video Part
 let myVideoStream;
+let screenShareStream;
 const myVideo = document.createElement("video");
 myVideo.muted = true;
 const peers = {};
@@ -47,16 +54,29 @@ navigator.mediaDevices
         addVideoStream(video, userVideoStream);
       });
     });
-
-    socket.on("user-connected", (userid) => {
+    socket.on("user-connected", (userid, user) => {
       connectToNewUser(userid, stream);
+      showPrompt(`${user.name} has joined the meeting.`);
+    });
+    socket.on("update_users", (userNames) => {
+      participantsList.innerHTML = "";
+      userNames.forEach((username) => {
+        const li = document.createElement("li");
+        li.classList.add("participant");
+        const markup = `<i class="fas fa-user"></i>${username}`;
+        li.innerHTML = markup;
+        participantsList.append(li);
+      });
     });
   });
 socket.on("user-disconnected", (userid) => {
   if (peers[userid]) peers[userid].close();
 });
+socket.on("user_left", (name) => {
+  showPrompt(`${name} has left the meeting.`);
+});
 peer.on("open", (id) => {
-  socket.emit("join-room", ROOM_ID, id);
+  socket.emit("join-room", ROOM_ID, id, user_name);
 });
 function connectToNewUser(userid, stream) {
   const call = peer.call(userid, stream);
@@ -85,6 +105,7 @@ const toggleChatBox = () => {
   }
   if (mainContainer.classList.contains("chat__inactive")) {
     mainContainer.classList.remove("chat__inactive");
+    input.focus();
   } else {
     mainContainer.classList.add("chat__inactive");
   }
@@ -109,6 +130,7 @@ const appendMessage = (msg, type) => {
   li.innerHTML = markup;
   messageList.append(li);
   input.value = "";
+  scrollToBottom();
 };
 //Function to send message
 const sendMessage = (e) => {
@@ -117,14 +139,19 @@ const sendMessage = (e) => {
     user: user_name,
     message: e.target.value.trim(),
   };
-  if (key === "Enter") {
+  if (key === "Enter" && msg.message !== "") {
     appendMessage(msg, "outgoing");
     socket.emit("send_message", msg);
   }
 };
 socket.on("receive_message", (msg) => {
+  showPrompt("1 new message recieved.");
   appendMessage(msg, "incoming");
 });
+//Function to scroll to bottom
+function scrollToBottom() {
+  messageContainer.scrollTop = messageContainer.scrollHeight;
+}
 //Function to toggle mute and unmute
 const toggleMuteUnmute = () => {
   if (muteIcon.classList.contains("fa-microphone")) {
@@ -163,6 +190,25 @@ const toggleVideo = () => {
     myVideoStream.getVideoTracks()[0].enabled = true;
   }
 };
+//Function to show prompt box
+let timeout;
+function showPrompt(message) {
+  promptBox.style.transform = `translate(-50%, 0)`;
+  promptBox.innerText = message;
+  clearTimeout(timeout);
+  timeout = setTimeout(() => {
+    promptBox.style.transform = `translate(-50%, -300px)`;
+  }, 3000);
+}
+//Function to share invite
+function shareInvite() {
+  const url = window.location.href;
+  meetingId = url.split("/").slice(-1)[0];
+  sharingLink.value = meetingId;
+  sharingLink.select();
+  document.execCommand("copy");
+  showPrompt("MeetingID copied successfully. You can share now.");
+}
 //Function to leave meeting
 function leaveMeeting() {
   window.location.href = "/";
@@ -175,3 +221,4 @@ leaveBtn.addEventListener("click", leaveMeeting);
 showParticipants.addEventListener("click", toggleParticipants);
 participantCloseBtn.addEventListener("click", closeParticipants);
 chatCloseBtn.addEventListener("click", closeChat);
+shareInviteBtn.addEventListener("click", shareInvite);

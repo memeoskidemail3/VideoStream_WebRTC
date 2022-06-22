@@ -8,6 +8,39 @@
   height: 100vh;
   width: 100vw;
   display: flex;
+  overflow: hidden;
+  position: relative;
+}
+.main .main__share__invite {
+  position: absolute;
+  bottom: -300px;
+}
+.main .prompt {
+  position: absolute;
+  left: 50%;
+  top: 2vh;
+  transform: translate(-50%, -300px);
+  padding: 10px 25px;
+  background-color: rgba(185, 185, 185, 0.5);
+  -webkit-transform: translate(-50%, -300px);
+  -moz-transform: translate(-50%, -300px);
+  -ms-transform: translate(-50%, -300px);
+  -o-transform: translate(-50%, -300px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  color: #fff;
+  border-radius: 5px;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -o-border-radius: 5px;
+  transition: transform 0.3s ease-in-out;
+  -webkit-transition: transform 0.3s ease-in-out;
+  -moz-transition: transform 0.3s ease-in-out;
+  -ms-transition: transform 0.3s ease-in-out;
+  -o-transition: transform 0.3s ease-in-out;
 }
 .main .main__left {
   flex: 0.8;
@@ -27,6 +60,7 @@
   justify-content: center;
   align-items: center;
   overflow: auto;
+  position: relative;
 }
 .main .main__left .main__left__video #video__grid {
   width: 100%;
@@ -39,7 +73,6 @@
 .main .main__left .main__left__video #video__grid video {
   width: 300px;
   height: 250px;
-  background-color: transparent !important;
 }
 .main .main__left .main__left__controls {
   height: 8vh;
@@ -138,6 +171,7 @@
 .main__right1 .main__right__participants {
   flex-grow: 1;
   overflow: auto;
+  max-height: 85vh;
 }
 .main__right .main__right__chat .messages,
 .main__right1 .main__right__participants .participants {
